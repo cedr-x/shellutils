@@ -1,0 +1,101 @@
+#!/bin/bash
+
+
+#centos 1To
+# SSD 500Go /dev/sda2
+# SSD 465Go /dev/sdb2
+
+#pool 12To
+# HDD 4To /dev/sdc
+# HDD 4To /dev/sdd
+# HDD 4To /dev/sde
+# SSD 500Go /dev/sda3
+
+
+#lrwxrwxrwx 1 root root  9 21 oct.  11:58 /dev/disk/by-id/ata-HGST_HDN724040ALE640_PK1334PEJ1R9YS -> ../../sdb
+#lrwxrwxrwx 1 root root  9 21 oct.  11:58 /dev/disk/by-id/ata-HGST_HDN724040ALE640_PK1334PEJ4233S -> ../../sdd
+#lrwxrwxrwx 1 root root  9 21 oct.  11:58 /dev/disk/by-id/ata-HGST_HDN724040ALE640_PK1334PEJ48RTS -> ../../sde
+#lrwxrwxrwx 1 root root  9 10 oct.  23:53 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B -> ../../sda
+#lrwxrwxrwx 1 root root 10 10 oct.  23:53 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part1 -> ../../sda1
+#lrwxrwxrwx 1 root root 10 10 oct.  23:53 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part2 -> ../../sda2
+#lrwxrwxrwx 1 root root 10 21 oct.  11:58 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part3 -> ../../sda3
+#lrwxrwxrwx 1 root root  9 21 oct.  11:58 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_500GB_S2RBNXAH107493Z -> ../../sdc
+
+SSD0=/dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part3
+SSD1=/dev/disk/by-id/ata-Samsung_SSD_850_EVO_500GB_S2RBNXAH107493Z
+ATA="/dev/disk/by-id/ata-HGST_HD*"
+SSD="$SSD0 $SSD1"
+usage="Usage: $0 --name <lv name> [ --dry-run ] [ --size <20G*> ] [ --raid linear|raid0|raid1|raid5* ] [ --tier cache*|ssd|hdd ]"
+
+function die {
+  echo $*
+  exit
+}
+
+
+function dbg {
+	[ "$DEBUG" != "" -o "$DRY" == "true" ] && echo $* >&2
+	[ "$DRY" != "true" ] && $*
+}
+
+## Default values
+TIER=cache
+SIZE=20G
+#RAID=raid5 # raid1 linear mirror
+
+
+## SSD : raid1 ou linear
+## ATA : raid0 ou raid1 ou raid5 ou linear/!\
+## CACHE : raid5 + linear ou raid5 + raid1
+
+
+while [ "$#" -ge 1 ]; do
+	[ "$1" == "--size"    ] && SIZE=$2 && shift
+	[ "$1" == "--name"    ] && NAME=$2 && shift
+	[ "$1" == "--raid"    ] && RAID=$2 && shift
+	[ "$1" == "--tier"    ] && TIER=$2 && shift
+	[ "$1" == "--strips"  ] && STRI=$2 && shift
+	[ "$1" == "--verbose" ] && DEBUG=true 
+	[ "$1" == "--dry-run" ] && DRY=true 
+	[ "$1" == "--help" ] && die $usage
+	shift
+done
+[ -z "$NAME" ] && die $usage
+
+[ "$RAID" == "0" -o "$RAID" == "1" -o "$RAID" == "5"  -o "$RAID" == "6"  ] && RAID=raid$RAID
+
+#echo "size $SIZE  name $NAME raid $RAID tier $TIER"
+
+if [ "$TIER" == "cache" ]; then
+	RAID=${RAID:-raid5}
+	echo "$SIZE" | grep -q G || die "$usage <- *G* est obligatoire"
+	[ -z "$NANE" ] || die $usage
+
+#	echo Making pool/$NAME of $SIZE with 64GB of SSD cache
+
+	dbg lvcreate -n ${NAME}_cache -W y -L58G pool  $SSD0
+	dbg lvcreate -n ${NAME}_meta  -W y -L58M pool  $SSD0
+	dbg lvcreate --type $RAID -W y --size $SIZE pool --name $NAME $ATA
+
+	dbg lvconvert --type cache-pool -y --cachemode writeback --poolmetadata pool/${NAME}_meta pool/${NAME}_cache
+	dbg lvconvert --type cache --cachemode writeback --cachepool pool/${NAME}_cache pool/$NAME
+	exit $?
+fi
+
+
+if [ "$TIER" == "ssd" ]; then
+	RAID=${RAID:-linear}
+	[ "$RAID" != "raid1" -a "$RAID" != "linear" ] && die "Raid $RAID indisponible pour 2 disques SSD" 
+	dbg lvcreate --type $RAID -W y --size $SIZE pool --name $NAME $SSD
+fi
+
+
+if [ "$TIER" == "hdd" ]; then
+	RAID=${RAID:-raid5}
+	[ "$RAID" == "raid1" ] && STRIPS=" -i 2 "
+	dbg lvcreate --type $RAID -W y $STRIPS --size $SIZE pool --name $NAME $ATA
+fi
+
+
+
+
