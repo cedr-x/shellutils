@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # fast disks (SSD pool) for eg: caching slices
 SSD0=/dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part3
