@@ -21,10 +21,14 @@
 #lrwxrwxrwx 1 root root 10 21 oct.  11:58 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part3 -> ../../sda3
 #lrwxrwxrwx 1 root root  9 21 oct.  11:58 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_500GB_S2RBNXAH107493Z -> ../../sdc
 
+# fast disks (SSD pool) for eg: caching slices
 SSD0=/dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part3
 SSD1=/dev/disk/by-id/ata-Samsung_SSD_850_EVO_500GB_S2RBNXAH107493Z
-ATA="/dev/disk/by-id/ata-HGST_HD*"
 SSD="$SSD0 $SSD1"
+
+# roto disks
+ATA="/dev/disk/by-id/ata-HGST_HD*"
+
 usage="Usage: $0 --name <lv name> [ --dry-run ] [ --size <20G*> ] [ --raid linear|raid0|raid1|raid5* ] [ --tier cache*|ssd|hdd ]"
 
 function die {
