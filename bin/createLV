@@ -1,26 +1,5 @@
 #!/bin/bash
 
-
-#centos 1To
-# SSD 500Go /dev/sda2
-# SSD 465Go /dev/sdb2
-
-#pool 12To
-# HDD 4To /dev/sdc
-# HDD 4To /dev/sdd
-# HDD 4To /dev/sde
-# SSD 500Go /dev/sda3
-
-
-#lrwxrwxrwx 1 root root  9 21 oct.  11:58 /dev/disk/by-id/ata-HGST_HDN724040ALE640_PK1334PEJ1R9YS -> ../../sdb
-#lrwxrwxrwx 1 root root  9 21 oct.  11:58 /dev/disk/by-id/ata-HGST_HDN724040ALE640_PK1334PEJ4233S -> ../../sdd
-#lrwxrwxrwx 1 root root  9 21 oct.  11:58 /dev/disk/by-id/ata-HGST_HDN724040ALE640_PK1334PEJ48RTS -> ../../sde
-#lrwxrwxrwx 1 root root  9 10 oct.  23:53 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B -> ../../sda
-#lrwxrwxrwx 1 root root 10 10 oct.  23:53 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part1 -> ../../sda1
-#lrwxrwxrwx 1 root root 10 10 oct.  23:53 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part2 -> ../../sda2
-#lrwxrwxrwx 1 root root 10 21 oct.  11:58 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part3 -> ../../sda3
-#lrwxrwxrwx 1 root root  9 21 oct.  11:58 /dev/disk/by-id/ata-Samsung_SSD_850_EVO_500GB_S2RBNXAH107493Z -> ../../sdc
-
 # fast disks (SSD pool) for eg: caching slices
 SSD0=/dev/disk/by-id/ata-Samsung_SSD_850_EVO_2TB_S2HDNWAG701598B-part3
 SSD1=/dev/disk/by-id/ata-Samsung_SSD_850_EVO_500GB_S2RBNXAH107493Z
@@ -28,6 +7,9 @@ SSD="$SSD0 $SSD1"
 
 # roto disks
 ATA="/dev/disk/by-id/ata-HGST_HD*"
+
+#### /conf
+
 
 usage="Usage: $0 --name <lv name> [ --dry-run ] [ --size <20G*> ] [ --raid linear|raid0|raid1|raid5* ] [ --tier cache*|ssd|hdd ]"
 
@@ -72,7 +54,7 @@ done
 
 if [ "$TIER" == "cache" ]; then
 	RAID=${RAID:-raid5}
-	echo "$SIZE" | grep -q G || die "$usage <- *G* est obligatoire"
+	echo "$SIZE" | grep -q G || die "$usage <- *G* is mandatory"
 	[ -z "$NANE" ] || die $usage
 
 #	echo Making pool/$NAME of $SIZE with 64GB of SSD cache
@@ -89,7 +71,7 @@ fi
 
 if [ "$TIER" == "ssd" ]; then
 	RAID=${RAID:-linear}
-	[ "$RAID" != "raid1" -a "$RAID" != "linear" ] && die "Raid $RAID indisponible pour 2 disques SSD" 
+	[ "$RAID" != "raid1" -a "$RAID" != "linear" ] && die "Raid $RAID unavailable for 2 SSD" 
 	dbg lvcreate --type $RAID -W y --size $SIZE pool --name $NAME $SSD
 fi
 
