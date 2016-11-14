@@ -1,4 +1,6 @@
 #!/bin/bash
+# Enumerate all physical volumes and show what's the usage on each
+
 for I in $( pvs -o pv_name --noheadings  ) ; do 
 	echo $I \($(lsblk ${I/[0-9]/}  -d  -o MODEL,REV,SIZE -n )\)
 	pvs $I --all  --noheadings --segment --nosuffix --units m -o seg_size,vg_name,lv_name | sed 's/_[^ ]*//;s/\[//;s/ *$//' \
