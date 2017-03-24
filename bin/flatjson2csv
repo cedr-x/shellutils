@@ -1,0 +1,42 @@
+#!/bin/awk -f 
+## Converti un flux json plat en stdin (cle: valeur) en CSV sur stdout
+## Limitations:
+## champs constants 
+## json plat
+
+##### Ex de fichier d'entree:
+# [
+#  {
+#    "path": "/VDC/vm/FRM000P01FEU",
+#    "name": "FRM000P01FEU",
+#    "uuid": "4225e76c-bb58-871d-1651-5c0419fcf778",
+#    "layout": "[www1] FRM000P01FEU/FRM000P01FEU.vmx"
+#  },
+#  {
+#    "path": "/VDC/vm/FRM000P01FEU",
+#    "name": "FRM000P01FEU",
+#    "uuid": "4225e76c-bb58-871d-1651-5c0419fcf778",
+#    "layout": "[www1] FRM000P01FEU/FRM000P01FEU.vmxf"
+#  }
+# ]
+
+##### Donnera en sortie:
+#  uuid;name;path;layout;
+#  "4225e76c-bb58-871d-1651-5c0419fcf778";"FRM000P01FEU";"/VDC/vm/FRM000P01FEU";"[www1] FRM000P01FEU/FRM000P01FEU.vmx";
+#  "4225e76c-bb58-871d-1651-5c0419fcf778";"FRM000P01FEU";"/VDC/vm/FRM000P01FEU";"[www1] FRM000P01FEU/FRM000P01FEU.vmxf";
+
+
+/  *"[^"]*": /   {
+        L[gensub("^\"(.*)\":$","\\1","1",$1)]=gensub(".*\": (\".*\"),*$","\\1","1",$0)
+}
+
+/  *},$/ {
+        if ( !F ) {
+                for ( I in L ) printf I";"
+                print ""
+                F=1
+        }
+        for ( I in L ) {
+                printf L[I]";" }
+                print "" 
+}
