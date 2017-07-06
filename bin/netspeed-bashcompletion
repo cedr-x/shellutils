@@ -1,0 +1,19 @@
+#
+# netspeed - simply display net traffic on one NIC
+#
+# Copyleft (CC) 2002 Cedric Buot de l'Epine <cdrx@delepine.org>
+#
+# This is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License version 2.1, as published by the Free Software
+# Foundation.  See file COPYING.
+# 
+# install this file under /etc/bash_completion.d/ or source it in your profile
+#
+
+_netspeedcompletion()
+{
+    COMPREPLY=( $( compgen -W " -i -moy -avg  -quiet -silent  $(  ls /sys/class/net/ ) " -- ${COMP_WORDS[COMP_CWORD]}) )
+
+}
+complete -F _netspeedcompletion netspeed
