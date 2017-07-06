@@ -1,0 +1,82 @@
+#
+# netspeed - just display the usage of one NIC
+#
+# Copyleft (CC) 2002 Cedric de l'Epine <cdrx@delepine.org>
+#
+# This is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License version 2.1, as published by the Free Software
+# Foundation.  See file COPYING.
+#
+
+IFACE=eth0
+MOY=0
+while [ $# -ge 1 ]; do
+ARG=`echo $1 | tr '[A-Z]' '[a-z]'`
+case "$ARG" in
+    -m|-moy|-avg)
+        MOY=1
+        ;;
+    -q|-s|-quiet|-silent)
+        silence=1
+        unset PROMPT_COMMAND
+        ;;
+    -i)
+        IFACE=$2
+        shift
+        ;;
+    *)
+        if [ -L /sys/class/net/$1 ]; then
+            IFACE=$1
+        else
+            echo "usage: $0 [ [-i] iface ] [-moy|-m|-avg] [-q|-s]"
+            exit 1
+        fi
+        ;;
+esac
+shift;
+done
+if [ "$MOY" = "1" ]; then
+    echo "Watching $IFACE (avrg)"
+else
+    echo "Watching $IFACE (realtime)"
+fi
+
+rx=0;tx=0;cpt=0
+ETH=$IFACE
+STARTTIME=`date +%s`
+#EXPR=`cat /proc/net/dev | tr ':' ' ' | awk '{ if ($1=="'$ETH'")  print "rx="$2 "; tx=" $10 }'`
+#eval $EXPR
+rx=$(< /sys/class/net/$ETH/statistics/rx_bytes )
+tx=$(< /sys/class/net/$ETH/statistics/tx_bytes )
+_rx=$rx;_tx=$tx
+sleep 1 &
+(
+while true; do
+    wait
+    sleep 1 &
+    rxold=$rx
+    txold=$tx
+    #EXPR=`cat /proc/net/dev | tr ':' ' ' | awk '{ if ($1=="'$ETH'")  print "rx="$2 "; tx=" $10 }'`
+    #eval $EXPR
+    rx=$(< /sys/class/net/$ETH/statistics/rx_bytes )
+    tx=$(< /sys/class/net/$ETH/statistics/tx_bytes )
+    if [ "$MOY" = "1" ]; then
+        TIME=$[ `date +%s` - $STARTTIME ]
+        wait
+        cpt=$TIME
+        ((rs=$rx-$_rx))
+        ((ts=$tx-$_tx))
+        [ $cpt == 0 ] && cpt=1
+        TITLE="["`echo  $rs $ts | awk '{ printf int($1/102.4/'$cpt')/10"/"int($2/102.4/'$cpt')/10 }'`"]"
+        [ ! -n "$silence" ] && echo  $rs $ts | awk '{ printf " RX="$1/1024/'$cpt' "Ko/s    TX="$2/1024/'$cpt'"Ko/s        \r"}'
+    else
+        rs=`expr $rx - $rxold`
+        ts=`expr $tx - $txold`
+        RES=`echo  $rs $ts | awk '{ printf " RX="$1/1024 "Ko/s   TX="$2/1024"Ko/s           \r" }'`
+        TITLE=" "`echo  $rs $ts | awk '{ printf int($1/102.4)/10 "/"int($2/102.4)/10 }'`" "
+        [ ! -n "$silence" ] && echo -en "$RES"
+    fi
+    echo -ne "\033]0;${TITLE}\007"
+done
+)
