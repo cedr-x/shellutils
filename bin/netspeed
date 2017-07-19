@@ -9,7 +9,7 @@
 # Foundation.  See file COPYING.
 #
 
-IFACE=eth0
+IFACE=$( ip route |  grep default | sed 's/.* dev \([^ ]*\) .*/\1/' | head -1  )
 MOY=0
 while [ $# -ge 1 ]; do
 ARG=`echo $1 | tr '[A-Z]' '[a-z]'`
