@@ -8,6 +8,10 @@
 # License version 2.1, as published by the Free Software
 # Foundation.  See file COPYING.
 #
+# Quick install:
+#  wget https://github.com/cedr-x/shellutils/raw/master/bin/netspeed -O ~/bin/netspeed && chmod +x ~/bin/netspeed
+#  wget https://github.com/cedr-x/shellutils/raw/master/bin/netspeed-bashcompletion -O ~/.netspeed-bashcompletion && echo ". ~/.netspeed-bashcompletion" >> ~/.bashrc 
+
 
 IFACE=$( ip route |  grep default | sed 's/.* dev \([^ ]*\) .*/\1/' | head -1  )
 MOY=0
