@@ -1,5 +1,7 @@
 # Some sneak cheat codes
 
+... or what I'm able to do without begging downtime windows
+
 ## Grow a kvm guest disk / fs online without rebooting
 
 My setup is a bit wierd since I define the storage of my vms with LVM on the hypervisor. This setup allows me to define for each vm / vdevices the tier used, if it needs flash cache, and with king of raid, depending the io profile (elasticsearch vs cold nfs vs ceph lab...) 
