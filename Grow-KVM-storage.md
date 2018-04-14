@@ -6,7 +6,7 @@
 
 My setup is a bit wierd since I define the storage of my vms with LVM on the hypervisor. This setup allows me to define for each vm / vdevices the tier used, if it needs flash cache, and with king of raid, depending the io profile (elasticsearch vs cold nfs vs ceph lab...) 
 
-**On the kvm hyp:**
+### On the kvm hyp:
 
 Grow the vm disk device/image. For instance to grow the logical volume up to 150GB: 
 
@@ -22,7 +22,7 @@ Notify the new size via hmp on the guest:
 ``` 
 # virsh qemu-monitor-command drive block_resize drive-virtio-disk0 150G --hmp 
 ```
-**Now look at the bright side on the guest:**
+### Now look (at the bright side) on the guest:
 
 The device growth has been reported in the kernel log of the guest - dmesg:
 ```
@@ -35,7 +35,7 @@ Now it's time to jump into the void by deleting the partition entry
 
 Don't be scared. This will not touch data, only the entry point of the filesystem. There nothing to worry (except a power issue)
 
-What we'll gonna do is to change the end boundary of the physical volume partition. If the PV is the whole device, this fdisk stuff can be skipped 
+What we'll gonna do is to change the end boundary of the physical volume partition. If the PV is the whole device, this fdisk stuff can be skipped and you can go straight to the pvresize below
 
 ```
 # fdisk /dev/vda
