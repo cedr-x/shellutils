@@ -33,7 +33,7 @@ The device growth has been reported in the kernel log of the guest - dmesg:
 ```
 Now it's time to jump into the void by deleting the partition entry
 
-Don't be scared. This will not touch data, only the entry point of the filesystem. There nothing to worry (except a power issue)
+Don't be scared. This will not touch data, only the entry point of the filesystem. There nothing to worry (even a power issue would be harmless)
 
 What we'll gonna do is to change the end boundary of the physical volume partition. If the PV is the whole device, this fdisk stuff can be skipped and you can go straight to the pvresize below
 
