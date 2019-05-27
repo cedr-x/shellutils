@@ -4,7 +4,7 @@
 
 ## Grow a kvm guest disk / fs online without rebooting
 
-My setup is a bit wierd since I define the storage of my vms with LVM on the hypervisor. This setup allows me to define for each vm / vdevices the tier used, if it needs flash cache, which king of raid, depending the io profile (elasticsearch vs cold nfs vs ceph lab...) 
+My setup is a bit weird since I define the storage of my vms with LVM on the hypervisor. This setup allows me to define for each vm / vdevices the tier used, if it needs flash cache, which king of raid, depending the io profile (elasticsearch vs cold nfs vs ceph lab...) 
 
 ### On the kvm hyp:
 
